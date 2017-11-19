@@ -46,6 +46,7 @@ public class Matrices {
 				RunMatrices hilo = new RunMatrices("hilo "+ (contador++));
 				hilo.start();
 				actual = hilo.multiplicar(matriz1, matriz2, cantidad, (i+1), (j+1));
+				hilo.stop();
 				M_resultante[i][j] = actual;
 			}
 		}
@@ -74,7 +75,7 @@ public class Matrices {
 			catch (Exception ex) {
 				System.out.println("Error al cerrar el archivo");
 			}
-		}	
+		}
 	}
 }
 
@@ -82,20 +83,34 @@ class RunMatrices implements Runnable {
 	// Constructor
 	private Thread t;
    	private String threadName;
+   	private volatile boolean exit = false;
 
    	RunMatrices(String name) {
       	threadName = name;
    	}
 
    	// Metodos
-	public void run(){}
+	public void run(){
+		while (!exit) {
+			try {
+				Thread.sleep(1);
+			}
+			catch (Exception e) {
+				t.interrupt();
+			}
+		}
+	}
 
-	public void start () {
+	public void start() {
       if (t == null) {
          t = new Thread (this, threadName);
          t.start ();
       }
-   }
+   	}
+
+   	public void stop() {
+   		exit = true;
+   	}
 
    // Método para multiplicar matrices, especificando qué fila, columna y el largo de ambas (para ser multiplicable)
    	public int multiplicar(int[][] matriz1, int[][] matriz2, int cant, int n_fila, int n_columna) {
