@@ -5,7 +5,7 @@ public class Matrices {
 		// Intentar leer archivo
 		BufferedReader archivo = null;
 		try {
-			archivo = new BufferedReader(new FileReader("../../matrices.txt"));
+			archivo = new BufferedReader(new FileReader("./matrices.txt"));
 		}
 		catch (Exception e) {
 			System.out.println("Error al abrir el archivo");
@@ -54,7 +54,7 @@ public class Matrices {
 		// Escribir en archivo
 		PrintWriter writer = null;
 		try {
-			writer = new PrintWriter("../../matriz_resultante.txt");
+			writer = new PrintWriter("./matriz_resultante.txt");
 			writer.println(Integer.parseInt(sizes1[0])+"x"+Integer.parseInt(sizes2[1])+"\n");
 			// Recorrer matriz numérica
 			for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
