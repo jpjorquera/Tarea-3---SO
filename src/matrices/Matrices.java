@@ -8,7 +8,7 @@ public class Matrices {
 			archivo = new BufferedReader(new FileReader("../../matrices.txt"));
 		}
 		catch (Exception e) {
-			System.out.println("Archivo de matrices no encontrado \n");
+			System.out.println("Error al abrir el archivo");
 			System.exit(-1);
 		}
 		// Sacar tamaño de matrices
@@ -34,26 +34,71 @@ public class Matrices {
 				matriz2[i][j] = Integer.parseInt(fila[j]);
 			}
 		}
-		int cantidad = Integer.parseInt(sizes1[1]);
-		int elemento = multiplicar(matriz1, matriz2, cantidad, 2, 4);
-		System.out.println("elem = "+elemento);
 		archivo.close();
+		int cantidad = Integer.parseInt(sizes1[1]);
 
+		// Hacer cálculos para cada matriz en cada thread
+		int contador = 1;
+		int[][] M_resultante = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes2[1])];
+		int actual = 0;
+		for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
+			for (int j=0; j<Integer.parseInt(sizes2[1]); j++) {
+				RunMatrices hilo = new RunMatrices("hilo "+ (contador++));
+				hilo.start();
+				actual = hilo.multiplicar(matriz1, matriz2, cantidad, (i+1), (j+1));
+				M_resultante[i][j] = actual;
+			}
+		}
 
-
-
-
-
-		System.exit(0);
-
-		RunMatrices R1 = new RunMatrices( "Thread-1");
-      	R1.start();
-      
-      	RunMatrices R2 = new RunMatrices( "Thread-2");
-      	R2.start();
+		// Escribir en archivo
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter("../../matriz_resultante.txt");
+			writer.println(Integer.parseInt(sizes1[0])+"x"+Integer.parseInt(sizes2[1])+"\n");
+			// Recorrer matriz numérica
+			for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
+				for (int j=0; j<Integer.parseInt(sizes2[1]); j++) {
+					writer.print(M_resultante[i][j]+" ");
+				}
+				writer.println();
+			}
+		}
+		catch (IOException e) {
+			System.out.println("Error al crear archivo");
+			System.exit(1);
+		}
+		finally {
+			try {
+				writer.close();
+			} 
+			catch (Exception ex) {
+				System.out.println("Error al cerrar el archivo");
+			}
+		}	
 	}
+}
 
-	public static int multiplicar(int[][] matriz1, int[][] matriz2, int cant, int n_fila, int n_columna) {
+class RunMatrices implements Runnable {
+	// Constructor
+	private Thread t;
+   	private String threadName;
+
+   	RunMatrices(String name) {
+      	threadName = name;
+   	}
+
+   	// Metodos
+	public void run(){}
+
+	public void start () {
+      if (t == null) {
+         t = new Thread (this, threadName);
+         t.start ();
+      }
+   }
+
+   // Método para multiplicar matrices, especificando qué fila, columna y el largo de ambas (para ser multiplicable)
+   	public int multiplicar(int[][] matriz1, int[][] matriz2, int cant, int n_fila, int n_columna) {
 		int sum = 0;
 		int elem1 = 0;
 		int elem2 = 0;
@@ -64,40 +109,4 @@ public class Matrices {
 		}
 		return sum;
 	}
-
-
-}
-
-class RunMatrices implements Runnable {
-	// Constructor
-	private Thread t;
-   	private String threadName;
-
-   	RunMatrices(String name) {
-      	threadName = name;
-      	System.out.println("Creating " +  threadName);
-   	}
-
-   	// Metodos
-	public void run() {
-		System.out.println("Running " +  threadName);
-		try {
-         for(int i = 4; i > 0; i--) {
-            System.out.println("Thread: " + threadName + ", " + i);
-            // Let the thread sleep for a while.
-            Thread.sleep(50);
-         }
-      	} catch (InterruptedException e) {
-         System.out.println("Thread " +  threadName + " interrupted. \n");
-      	}
-      	System.out.println("Thread " +  threadName + " exiting. \n");
-	}
-
-	public void start () {
-      System.out.println("Starting " +  threadName + "\n");
-      if (t == null) {
-         t = new Thread (this, threadName);
-         t.start ();
-      }
-   }
 }
