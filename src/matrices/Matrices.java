@@ -93,7 +93,7 @@ class RunMatrices implements Runnable {
 	public void run(){
 		while (!exit) {
 			try {
-				Thread.sleep(1);
+				Thread.sleep(50);
 			}
 			catch (Exception e) {
 				t.interrupt();
