@@ -8,6 +8,7 @@ class Granja {
 		System.out.println("\nBienvenido a la Granja Radioactiva!\n");
 		Boolean salir = false;
 		Scanner reader = null;
+		// Iterar según acción elegida
 		while (!salir) {
 			// Pedir acción
 			System.out.println("Ingrese alguna de las siguientes opciones:");
@@ -38,6 +39,7 @@ class Granja {
 				Boolean valido = false;
 				Scanner intento = null;
 				int tiempo = 0;
+				// Validar tiempo
 				while (!valido) {
 					System.out.println("Ingresar Tiempo de Crecimiento (Segundos):");
 					try {
@@ -56,6 +58,7 @@ class Granja {
 				}
 				valido = false;
 				int costo = 0;
+				// Validar costo por kilo
 				while (!valido) {
 					System.out.println("Ingresar Costo por Kilo:");
 					try {
@@ -73,6 +76,7 @@ class Granja {
 					valido = true;
 				}
 				System.out.println(name+" ingresado(a) con éxito! \n");
+				// Crear thread
 				Cultivo cultivo = new Cultivo("Thread "+id_actual, name, tiempo, costo, (id_actual++));
 				cultivos.add(cultivo);
 				cultivo.start();
@@ -80,6 +84,7 @@ class Granja {
 
 			// Opción ver cultivos
 			else if (opcion == 2) {
+				// Verificar cantidad de cultivos
 				if (id_actual == 1) {
 					System.out.println("No hay cultivos!\n");
 				}
@@ -87,6 +92,7 @@ class Granja {
 					System.out.println("Los cultivos que hay son:");
 					Cultivo cultivo = null;
 					Iterator<Cultivo> iterador = cultivos.iterator();
+					// Iterar cultivos actuales
 					for (int i=1; i<id_actual; i++) {
 						cultivo = iterador.next();
 						if (cultivo.id == i) {
@@ -143,14 +149,21 @@ class Granja {
 				Boolean estadoCompra = false;
 				Iterator<Cultivo> iterador_actual = cultivos.iterator();
 				int i = 0;
+				// Iterar hasta encontrar el elegido
 				while (iterador_actual.hasNext()) {
 					Cultivo cultivo = iterador_actual.next(); 
 		    		if (cultivo.id == eleccion) {
 		    			int precio = cultivo.costoKilo * cultivo.peso;
 		    			if (a_pagar >= precio) {
-		    				System.out.println("Gracias por comprar en la Granja Radioactiva! su vuelto es de $"
-		    					+(a_pagar-precio)+".");
-		    				retirar(eleccion);
+		    				// Dar vuelto
+		    				if (a_pagar != precio) {
+		    					System.out.println("Gracias por comprar en la Granja Radioactiva, su vuelto es de $"
+		    						+(a_pagar-precio)+".");
+		    				}
+		    				// Dinero exacto
+		    				else {
+		    					System.out.println("Gracias por comprar en la Granja Radioactiva.");
+		    				}
 		    				estadoCompra = true;
 		    			}
 		    			else {
@@ -162,36 +175,39 @@ class Granja {
 		    		}
 		    		i++;
  				}
+ 				// Detener thread de cultivo comprado
  				if (estadoCompra) {
  					Iterator<Cultivo> iter = cultivos.iterator();
 					while (iter.hasNext()) {
 					    Cultivo cult_actual = iter.next();
 					    if (cult_actual.id == eleccion) {
 					        cult_actual.stop();
+					        retirar(eleccion);
+					        break;
 					    }
 					}
- 					/*for(Cultivo cult:cultivos) {  
-			    		if (cult.id == eleccion) {
-			    			cult.stop();
-			    		}
-			 		}*/
 			 	}
 
 
 
 			}
-
+			// Salir
 			else {
 				salir = true;
 				System.out.println("\n¡Gracias por venir a la Granja Radioactiva! esperamos que vuelva pronto.");
 			}
 		}
 		reader.close();
-		for(Cultivo cultivo:cultivos) {  
-    		cultivo.stop();
- 		}  
+		// Detener threads que sigan corriendo para salir
+		Iterator<Cultivo> iter_final = cultivos.iterator();
+		while (iter_final.hasNext()) {
+		    Cultivo cult_actual = iter_final.next();
+		    cult_actual.stop();
+		} 
  		cultivos.clear();
 	}
+
+	// Método para retirar de los cultivos el indicado, no detiene el thread
 	public static void retirar(int id) {
 		Iterator<Cultivo> iter = cultivos.iterator();
 		for (int i=0; i<id; i++) {
@@ -212,6 +228,8 @@ class Granja {
 	}
 }
 
+// Clase que lleva el trabajo de threads, almacena información de cada cultivo
+// y sobreescribe funciones para el manejo de threads, principalmente Run()
 class Cultivo implements Runnable {
 	// Constructor
 	private Thread t;
@@ -234,17 +252,21 @@ class Cultivo implements Runnable {
       	peso = 1;
    	}
 
-   	// Metodos
+   	// Acciones mientras corre el thread
 	public void run(){
+		// Salir cuando se indique
 		while (!exit) {
+			// Revisar cada segundo
 			try {
 				Thread.sleep(1000);
 			}
 			catch (Exception e) {};
+			// Actualizar tiempo restante para descomponerse
 			if (--t_restante == 0) {
 				peso++;
 				t_restante = tiempoCrecimiento;
 			}
+			// Si se descompuso
 			if (peso == 20) {
 				System.out.println("\nSe descompuso el(la) "+nombreCultivo+", retirando de la granja.\n");
 				Granja.retirar(id);
@@ -253,6 +275,7 @@ class Cultivo implements Runnable {
 		}
 	}
 
+	// Correr el thread
 	public void start() {
       if (t == null) {
          t = new Thread (this, threadName);
@@ -260,6 +283,7 @@ class Cultivo implements Runnable {
       }
    	}
 
+   	// Detener el thread
    	public void stop() {
    		exit = true;
    	}
