@@ -1,11 +1,11 @@
-import java.util.Scanner;
+import java.util.*;
 
 class Granja {
 	public static void main(String[] args) {
 		System.out.println("Bienvenido a la Granja Radioactiva!");
 		Boolean salir = false;
 		Scanner reader = null;
-		Cultivo cultivo = null;
+		ArrayList<Cultivo> cultivos = new ArrayList<Cultivo>();
 		int id_actual = 1;
 		while (!salir) {
 			// Pedir acción
@@ -13,6 +13,7 @@ class Granja {
 			System.out.println("1.- Cultivar");
 			System.out.println("2.- Ver Cultivos");
 			System.out.println("3.- Comprar Cultivos");
+			System.out.println("4.- Salir");
 			reader = new Scanner(System.in);
 			int opcion;
 			// Validar opción
@@ -20,11 +21,11 @@ class Granja {
 				opcion = reader.nextInt();
 			}
 			catch (Exception e) {
-				System.out.println("Opción inválida, por favor inténtelo nuevamente.");
+				System.out.println("Opción inválida, por favor inténtelo nuevamente. \n");
 				continue;
 			}
-			if (opcion>3 || opcion<1) {
-				System.out.println("Opción inválida, por favor inténtelo nuevamente.");
+			if (opcion>4 || opcion<1) {
+				System.out.println("Opción inválida, por favor inténtelo nuevamente. \n");
 				continue;
 			}
 
@@ -43,11 +44,11 @@ class Granja {
 						tiempo = intento.nextInt();
 					}
 					catch (Exception e) {
-						System.out.println("Tiempo inválido, por favor inténtelo nuevamente.");
+						System.out.println("Tiempo inválido, por favor inténtelo nuevamente. \n");
 						continue;
 					}
 					if (tiempo <= 1) {
-						System.out.println("Por favor, ingrese un tiempo entero positivo.");
+						System.out.println("Por favor, ingrese un tiempo entero positivo. \n");
 						continue;
 					}
 					valido = true;
@@ -61,17 +62,18 @@ class Granja {
 						costo = reader.nextInt();
 					}
 					catch (Exception e) {
-						System.out.println("Costo por Kilo inválido, por favor inténtelo nuevamente.");
+						System.out.println("Costo por Kilo inválido, por favor inténtelo nuevamente. \n");
 						continue;
 					}
 					if (costo <= 0) {
-						System.out.println("Por favor, ingrese un costo positivo.");
+						System.out.println("Por favor, ingrese un costo positivo. \n");
 						continue;
 					}
 					valido = true;
 				}
 				System.out.println(name+" ingresado(a) con éxito! \n");
-				cultivo = new Cultivo("Thread "+id_actual, name, tiempo, costo, (id_actual++));
+				Cultivo cultivo = new Cultivo("Thread "+id_actual, name, tiempo, costo, (id_actual++));
+				cultivos.add(cultivo);
 				cultivo.start();
 			}
 
@@ -82,27 +84,31 @@ class Granja {
 				}
 				else {
 					System.out.println("Los cultivos que hay son:");
+					Cultivo cultivo = null;
+					Iterator<Cultivo> iterador = cultivos.iterator();
 					for (int i=1; i<id_actual; i++) {
+						cultivo = iterador.next();
 						if (cultivo.id == i) {
 							System.out.println(i+".- "+cultivo.nombreCultivo+" ("+
 								cultivo.peso+" Kg, $"+(cultivo.peso*cultivo.costoKilo)+") que crecerá en "+
-								cultivo.t_restante+" Segundo(s)");
+								cultivo.t_restante+" Segundo(s).");
 						}
 					}
+					System.out.println();
 				}
 			}
 
+			// Opcion comprar
+			else if (opcion == 3) {
 
+			}
 
-
-
-
-
+			else {
+				salir = true;
+				System.out.println("Gracias por venir a la Granja Radioactiva! esperamos que vuelva pronto.");
+			}
 		}
 		reader.close();
-	}
-	public static void Cultivar() {
-		
 	}
 }
 
