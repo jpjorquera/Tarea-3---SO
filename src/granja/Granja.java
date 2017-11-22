@@ -101,6 +101,83 @@ class Granja {
 
 			// Opcion comprar
 			else if (opcion == 3) {
+				Boolean valido = false;
+				int eleccion = 0;
+				int a_pagar = 0;
+				while (!valido) {
+					// Obtener ID
+					System.out.println("Ingrese ID del cultivo a comprar:");
+					// Validar opción
+					try {
+						reader = new Scanner(System.in);
+						eleccion = reader.nextInt();
+					}
+					catch (Exception e) {
+						System.out.println("ID inválido, por favor inténtelo nuevamente. \n");
+						continue;
+					}
+					if (eleccion>id_actual || eleccion<1) {
+						System.out.println("ID inválido, por favor inténtelo nuevamente. \n");
+						continue;
+					}
+					valido = true;
+				}
+				valido = false;
+				while (!valido) {
+					// Obtener dinero
+					System.out.println("Ingrese el dinero a pagar:");
+					// Validar opción
+					try {
+						reader = new Scanner(System.in);
+						a_pagar = reader.nextInt();
+					}
+					catch (Exception e) {
+						System.out.println("Monto inválido, por favor inténtelo nuevamente. \n");
+						continue;
+					}
+					if (a_pagar <= 0) {
+						continue;
+					}
+					valido = true;
+				}
+				Boolean estadoCompra = false;
+				Iterator<Cultivo> iterador_actual = cultivos.iterator();
+				int i = 0;
+				while (iterador_actual.hasNext()) {
+					Cultivo cultivo = iterador_actual.next(); 
+		    		if (cultivo.id == eleccion) {
+		    			int precio = cultivo.costoKilo * cultivo.peso;
+		    			if (a_pagar >= precio) {
+		    				System.out.println("Gracias por comprar en la Granja Radioactiva! su vuelto es de $"
+		    					+(a_pagar-precio)+".");
+		    				retirar(eleccion);
+		    				estadoCompra = true;
+		    			}
+		    			else {
+		    				System.out.println("Lo siento, el precio actual es de $"+precio+
+		    					" y su dinero no es suficiente.");
+		    			}
+		    			System.out.println();
+		    			break;
+		    		}
+		    		i++;
+ 				}
+ 				if (estadoCompra) {
+ 					Iterator<Cultivo> iter = cultivos.iterator();
+					while (iter.hasNext()) {
+					    Cultivo cult_actual = iter.next();
+					    if (cult_actual.id == eleccion) {
+					        cult_actual.stop();
+					    }
+					}
+ 					/*for(Cultivo cult:cultivos) {  
+			    		if (cult.id == eleccion) {
+			    			cult.stop();
+			    		}
+			 		}*/
+			 	}
+
+
 
 			}
 
@@ -116,7 +193,16 @@ class Granja {
  		cultivos.clear();
 	}
 	public static void retirar(int id) {
-		cultivos.remove(id-1);
+		Iterator<Cultivo> iter = cultivos.iterator();
+		for (int i=0; i<id; i++) {
+			Cultivo actual = iter.next();
+			if (i==(id-1)) {
+				iter.remove();
+			}
+		}
+
+		//cultivos.remove(id-1);
+		// Actualizar IDs en array
 		for(Cultivo cultivo:cultivos) {  
     		if (cultivo.id > id) {
     			cultivo.id--;
@@ -160,7 +246,7 @@ class Cultivo implements Runnable {
 				t_restante = tiempoCrecimiento;
 			}
 			if (peso == 20) {
-				System.out.println("Se descompuso el(la) "+nombreCultivo+", retirando de la granja.");
+				System.out.println("\nSe descompuso el(la) "+nombreCultivo+", retirando de la granja.\n");
 				Granja.retirar(id);
 				this.stop();
 			}
