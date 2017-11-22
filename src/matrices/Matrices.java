@@ -21,6 +21,7 @@ public class Matrices {
 		// Leer lineas de las matrices
 		int[][] matriz1 = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes1[1])];
 		int[][] matriz2 = new int[Integer.parseInt(sizes2[0])][Integer.parseInt(sizes2[1])];
+		// Leer matriz 1
 		for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
 			String[] fila = archivo.readLine().split(" ");
 			for (int j=0; j<Integer.parseInt(sizes1[1]); j++) {
@@ -28,6 +29,7 @@ public class Matrices {
 			}
 		}
 		archivo.readLine();
+		// Leer matriz 2
 		for (int i=0; i<Integer.parseInt(sizes2[0]); i++) {
 			String[] fila = archivo.readLine().split(" ");
 			for (int j=0; j<Integer.parseInt(sizes2[1]); j++) {
@@ -41,6 +43,7 @@ public class Matrices {
 		int contador = 1;
 		int[][] M_resultante = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes2[1])];
 		int actual = 0;
+		// Hacer operaciones en cada hilo y guardar en resultante
 		for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
 			for (int j=0; j<Integer.parseInt(sizes2[1]); j++) {
 				RunMatrices hilo = new RunMatrices("hilo "+ (contador++));
@@ -79,19 +82,22 @@ public class Matrices {
 	}
 }
 
+// Clase para correr threads y realizar operaciones
 class RunMatrices implements Runnable {
-	// Constructor
 	private Thread t;
    	private String threadName;
    	private volatile boolean exit = false;
 
+   	// Constructor básico con nombre de prueba
    	RunMatrices(String name) {
       	threadName = name;
    	}
 
-   	// Metodos
+   	// Metodo que se corre mientras el thread este funcionando
 	public void run(){
+		// Verificar si corresponde salir
 		while (!exit) {
+			// Dormir si no hay acción
 			try {
 				Thread.sleep(50);
 			}
@@ -101,6 +107,7 @@ class RunMatrices implements Runnable {
 		}
 	}
 
+	// Crear y correr thread
 	public void start() {
       if (t == null) {
          t = new Thread (this, threadName);
@@ -108,6 +115,7 @@ class RunMatrices implements Runnable {
       }
    	}
 
+   	// Actualizar variable para detener thread
    	public void stop() {
    		exit = true;
    	}
