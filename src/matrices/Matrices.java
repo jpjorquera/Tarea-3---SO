@@ -1,6 +1,10 @@
 import java.io.*;
+import java.util.*;
 
 public class Matrices {
+	public static int[][] matriz1 = null;
+	public static int[][] matriz2 = null;
+
 	public static void main(String[] args) throws IOException {
 		// Intentar leer archivo
 		BufferedReader archivo = null;
@@ -19,13 +23,13 @@ public class Matrices {
 		archivo.readLine();
 
 		// Leer lineas de las matrices
-		int[][] matriz1 = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes1[1])];
-		int[][] matriz2 = new int[Integer.parseInt(sizes2[0])][Integer.parseInt(sizes2[1])];
+		Matrices.matriz1 = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes1[1])];
+		Matrices.matriz2 = new int[Integer.parseInt(sizes2[0])][Integer.parseInt(sizes2[1])];
 		// Leer matriz 1
 		for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
 			String[] fila = archivo.readLine().split(" ");
 			for (int j=0; j<Integer.parseInt(sizes1[1]); j++) {
-				matriz1[i][j] = Integer.parseInt(fila[j]);
+				Matrices.matriz1[i][j] = Integer.parseInt(fila[j]);
 			}
 		}
 		archivo.readLine();
@@ -33,26 +37,32 @@ public class Matrices {
 		for (int i=0; i<Integer.parseInt(sizes2[0]); i++) {
 			String[] fila = archivo.readLine().split(" ");
 			for (int j=0; j<Integer.parseInt(sizes2[1]); j++) {
-				matriz2[i][j] = Integer.parseInt(fila[j]);
+				Matrices.matriz2[i][j] = Integer.parseInt(fila[j]);
 			}
 		}
+
 		archivo.close();
 		int cantidad = Integer.parseInt(sizes1[1]);
-
-		// Hacer cálculos para cada matriz en cada thread
 		int contador = 1;
-		int[][] M_resultante = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes2[1])];
-		int actual = 0;
-		// Hacer operaciones en cada hilo y guardar en resultante
+		// Hacer operaciones en cada hilo
+		ArrayList<RunMatrices> hilos = new ArrayList<RunMatrices>();
 		for (int i=0; i<Integer.parseInt(sizes1[0]); i++) {
 			for (int j=0; j<Integer.parseInt(sizes2[1]); j++) {
-				RunMatrices hilo = new RunMatrices("hilo "+ (contador++));
+				RunMatrices hilo = new RunMatrices("hilo "+ (contador++), cantidad, (i+1), (j+1));
 				hilo.start();
-				actual = hilo.multiplicar(matriz1, matriz2, cantidad, (i+1), (j+1));
-				hilo.stop();
-				M_resultante[i][j] = actual;
+				hilos.add(hilo);
 			}
 		}
+
+		// Guardar resultados en nueva matriz y detener el hilo
+		int[][] M_resultante = new int[Integer.parseInt(sizes1[0])][Integer.parseInt(sizes2[1])];
+		for (RunMatrices hilo_aux:hilos) {
+			int fila = hilo_aux.fila;
+			int col = hilo_aux.columna;
+			int valor = hilo_aux.resultado;
+			M_resultante[fila-1][col-1] = valor;
+		}
+		hilos.clear();
 
 		// Escribir en archivo
 		PrintWriter writer = null;
@@ -87,22 +97,39 @@ class RunMatrices implements Runnable {
 	private Thread t;
    	private String threadName;
    	private volatile boolean exit = false;
+   	private int cantidad;
+   	public int fila;
+   	public int columna;
+   	public int resultado = 0;
+   	private boolean calculado = false;
 
-   	// Constructor básico con nombre de prueba
-   	RunMatrices(String name) {
+   	// Constructor básico con nombre de prueba y información necesario para multiplicar
+   	//actual = hilo.multiplicar(matriz1, matriz2, cantidad, (i+1), (j+1));****************
+   	RunMatrices(String name, int cant, int i, int j) {
       	threadName = name;
+      	cantidad = cant;
+      	fila = i;
+      	columna = j;
    	}
 
    	// Metodo que se corre mientras el thread este funcionando
 	public void run(){
 		// Verificar si corresponde salir
 		while (!exit) {
-			// Dormir si no hay acción
-			try {
-				Thread.sleep(50);
+			if (!calculado) {
+				// Realizar operacion
+				resultado = this.multiplicar(Matrices.matriz1, Matrices.matriz2, cantidad, fila, columna);
+				calculado = true;
+				this.stop();
 			}
-			catch (Exception e) {
-				t.interrupt();
+			else {
+				// Dormir si no hay acción
+				try {
+					Thread.sleep(50);
+				}
+				catch (Exception e) {
+					t.interrupt();
+				}
 			}
 		}
 	}
