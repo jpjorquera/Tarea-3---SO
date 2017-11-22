@@ -1,12 +1,13 @@
 import java.util.*;
 
 class Granja {
+	private static ArrayList<Cultivo> cultivos = new ArrayList<Cultivo>();
+	public static int id_actual = 1;
+
 	public static void main(String[] args) {
-		System.out.println("Bienvenido a la Granja Radioactiva!");
+		System.out.println("\nBienvenido a la Granja Radioactiva!\n");
 		Boolean salir = false;
 		Scanner reader = null;
-		ArrayList<Cultivo> cultivos = new ArrayList<Cultivo>();
-		int id_actual = 1;
 		while (!salir) {
 			// Pedir acción
 			System.out.println("Ingrese alguna de las siguientes opciones:");
@@ -47,8 +48,8 @@ class Granja {
 						System.out.println("Tiempo inválido, por favor inténtelo nuevamente. \n");
 						continue;
 					}
-					if (tiempo <= 1) {
-						System.out.println("Por favor, ingrese un tiempo entero positivo. \n");
+					if (tiempo < 10) {
+						System.out.println("Por favor, ingrese un tiempo mayor o igual a 10 [s]. \n");
 						continue;
 					}
 					valido = true;
@@ -105,10 +106,23 @@ class Granja {
 
 			else {
 				salir = true;
-				System.out.println("Gracias por venir a la Granja Radioactiva! esperamos que vuelva pronto.");
+				System.out.println("\n¡Gracias por venir a la Granja Radioactiva! esperamos que vuelva pronto.");
 			}
 		}
 		reader.close();
+		for(Cultivo cultivo:cultivos) {  
+    		cultivo.stop();
+ 		}  
+ 		cultivos.clear();
+	}
+	public static void retirar(int id) {
+		cultivos.remove(id-1);
+		for(Cultivo cultivo:cultivos) {  
+    		if (cultivo.id > id) {
+    			cultivo.id--;
+    		}
+ 		}  
+		id_actual--;
 	}
 }
 
@@ -144,6 +158,11 @@ class Cultivo implements Runnable {
 			if (--t_restante == 0) {
 				peso++;
 				t_restante = tiempoCrecimiento;
+			}
+			if (peso == 20) {
+				System.out.println("Se descompuso el(la) "+nombreCultivo+", retirando de la granja.");
+				Granja.retirar(id);
+				this.stop();
 			}
 		}
 	}
