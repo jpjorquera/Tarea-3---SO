@@ -122,7 +122,7 @@ class Granja {
 						System.out.println("ID inválido, por favor inténtelo nuevamente. \n");
 						continue;
 					}
-					if (eleccion>id_actual || eleccion<1) {
+					if (eleccion>=id_actual || eleccion<1) {
 						System.out.println("ID inválido, por favor inténtelo nuevamente. \n");
 						continue;
 					}
