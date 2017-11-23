@@ -1,12 +1,14 @@
 import java.util.*;
+import java.util.concurrent.locks.*;
 
 class Granja {
+	public static Lock lock = new ReentrantLock();
 	private static ArrayList<Cultivo> cultivos = new ArrayList<Cultivo>();
 	public static int id_actual = 1;
+	public static Boolean salir = false;
 
 	public static void main(String[] args) {
 		System.out.println("\nBienvenido a la Granja Radioactiva!\n");
-		Boolean salir = false;
 		Scanner reader = null;
 		// Iterar según acción elegida
 		while (!salir) {
@@ -78,7 +80,11 @@ class Granja {
 				System.out.println(name+" ingresado(a) con éxito! \n");
 				// Crear thread
 				Cultivo cultivo = new Cultivo("Thread "+id_actual, name, tiempo, costo, (id_actual++));
+				// Bloquear cultivos
+				lock.lock();
 				cultivos.add(cultivo);
+				lock.unlock();
+				// Comenzar cultivo
 				cultivo.start();
 			}
 
@@ -91,6 +97,8 @@ class Granja {
 				else {
 					System.out.println("Los cultivos que hay son:");
 					Cultivo cultivo = null;
+					// Bloquear cultivos
+					lock.lock();
 					Iterator<Cultivo> iterador = cultivos.iterator();
 					// Iterar cultivos actuales
 					for (int i=1; i<id_actual; i++) {
@@ -101,6 +109,7 @@ class Granja {
 								cultivo.tiempoCrecimiento+" Segundos.");
 						}
 					}
+					lock.unlock();
 					System.out.println();
 				}
 			}
@@ -147,6 +156,8 @@ class Granja {
 					valido = true;
 				}
 				Boolean estadoCompra = false;
+				// Bloquear cultivos
+				lock.lock();
 				Iterator<Cultivo> iterador_actual = cultivos.iterator();
 				int i = 0;
 				// Iterar hasta encontrar el elegido
@@ -175,17 +186,22 @@ class Granja {
 		    		}
 		    		i++;
  				}
+ 				lock.unlock();
  				// Detener thread de cultivo comprado
  				if (estadoCompra) {
+ 					// Bloquear cultivos
+ 					lock.lock();
  					Iterator<Cultivo> iter = cultivos.iterator();
 					while (iter.hasNext()) {
 					    Cultivo cult_actual = iter.next();
 					    if (cult_actual.id == eleccion) {
+					    	// Detener Thread
 					        cult_actual.stop();
 					        retirar(eleccion);
 					        break;
 					    }
 					}
+					lock.unlock();
 			 	}
 
 
@@ -198,6 +214,8 @@ class Granja {
 			}
 		}
 		reader.close();
+		// Bloquear cultivos
+		lock.lock();
 		// Detener threads que sigan corriendo para salir
 		Iterator<Cultivo> iter_final = cultivos.iterator();
 		while (iter_final.hasNext()) {
@@ -205,16 +223,23 @@ class Granja {
 		    cult_actual.stop();
 		} 
  		cultivos.clear();
+ 		lock.unlock();
 	}
 
 	// Método para retirar de los cultivos el indicado, no detiene el thread
 	public static void retirar(int id) {
-		Iterator<Cultivo> iter = cultivos.iterator();
-		for (int i=0; i<id; i++) {
-			Cultivo actual = iter.next();
-			if (i==(id-1)) {
-				iter.remove();
+		if (!salir) {
+			// Bloquear cultivos
+			lock.lock();
+			Iterator<Cultivo> iter = cultivos.iterator();
+			// Sacar de los cultivos
+			for (int i=0; i<id; i++) {
+				Cultivo actual = iter.next();
+				if (i==(id-1)) {
+					iter.remove();
+				}
 			}
+			lock.unlock();
 		}
 
 		//cultivos.remove(id-1);
