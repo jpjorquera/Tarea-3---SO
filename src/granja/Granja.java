@@ -98,7 +98,7 @@ class Granja {
 						if (cultivo.id == i) {
 							System.out.println(i+".- "+cultivo.nombreCultivo+" ("+
 								cultivo.peso+" Kg, $"+(cultivo.peso*cultivo.costoKilo)+") que crecerá en "+
-								cultivo.t_restante+" Segundo(s).");
+								cultivo.tiempoCrecimiento+" Segundos.");
 						}
 					}
 					System.out.println();
