@@ -6,8 +6,6 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
 class Funciones {
-	public static Lock lock = new ReentrantLock();
-
 	public static void main(String[] args) {
 		int cant_funciones = 0;
 		// Leer archivo
@@ -106,10 +104,32 @@ class Funciones {
 			}
 
 			// Función válida
-			String value = funciones.get(funcion+"(x)");
-			System.out.println("F: "+funcion);
+			String value = funciones.get(letra+"(x)");
+			System.out.println("value: "+value);
 			System.out.println("num: "+num);
-			RunFuncion calcular = new RunFuncion("Thread principal", value);
+			double res = 0;
+			RunFuncion calcular = new RunFuncion("Thread principal", letra+"(x)", value, num);
+			calcular.start();
+			calcular.lock.lock();
+			try {
+				if (!calcular.calculado) {
+					calcular.condicion.await();
+				}
+				res = calcular.resultado;
+			}
+			catch (InterruptedException exc) {
+				System.out.println("Operación interrumpida");
+			}
+			calcular.lock.unlock();
+
+			// Limpiar entero
+			if ((res % ((int) res)) == 0 || (((int) res) == 0)) {
+				System.out.println("El resultado de "+funcion+" es "+(int) calcular.resultado);
+			}
+			else {
+				System.out.println("El resultado de "+funcion+" es "+calcular.resultado);
+			}
+
 
 		}
 
@@ -139,18 +159,52 @@ class RunFuncion implements Runnable {
 	private Thread t;
    	private String threadName;
    	private volatile boolean exit;
+   	private String funcion;
    	private String operacion;
-   	private int resultado;
+   	public double resultado;
+   	private String numero;
+   	public boolean calculado;
+   	public Lock lock = new ReentrantLock();
+   	public Condition condicion = lock.newCondition();
 
    	// Constructor con condiciones iniciales
-   	RunFuncion(String name, String op) {
+   	RunFuncion(String name, String func, String op, String num) {
    		threadName = name;
    		exit = false;
    		resultado = 0;
+   		funcion = func;
    		operacion = op;
+   		numero = num;
+   		calculado = false;
    	}
 
+   	// Realizar operaciones
 	public void run() {
+		// Salir cuando se indique
+		while (!exit) {
+			// Si no ha realizado los cálculos
+			if (!calculado) {
+				Expression exp = new ExpressionBuilder(operacion.replace("x", numero)).build();
+				lock.lock();
+				resultado = exp.evaluate();
+				calculado = true;
+				try {
+					condicion.signal();
+				}
+				catch (Exception e) {
+					System.out.println(e);
+				}
+				lock.unlock();
+				this.stop();
+			}
+			// Si terminó operación y hay que esperar
+			else {
+				try {
+					Thread.sleep(50);
+				}
+				catch (InterruptedException e) {}
+			}
+		}
 	}
 
 	// Correr el thread
