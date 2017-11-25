@@ -6,6 +6,8 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
 class Funciones {
+	public static HashMap<String,String> funciones;
+
 	public static void main(String[] args) {
 		int cant_funciones = 0;
 		// Leer archivo
@@ -36,7 +38,7 @@ class Funciones {
 			System.exit(-1);
 		}
 
-		HashMap<String, String> funciones = new HashMap<String, String>();
+		funciones = new HashMap<String, String>();
 		// Leer funciones
 		for (int i=0; i<cant_funciones; i++) {
 			String func = "";
@@ -52,33 +54,9 @@ class Funciones {
 			}
 			funciones.put(func.substring(0,4), func.substring(5).trim());
 		}
-
-		////////// Test del Hash //////////////////
-		for (Map.Entry<String,String>entrada:funciones.entrySet()) {
-			String l = entrada.getKey();
-			String f = entrada.getValue();
-			System.out.println(l+" = "+f);
-		}
-
-		String evaluar = "5+3*2+1+2*5+1";
-		/*ScriptEngineManager manager = new ScriptEngineManager();
-		ScriptEngine engine = manager.getEngineByName("js");
-		try {
-			Object result = engine.eval(evaluar);
-			System.out.println("resultado = "+result);
-		}
-		catch (ScriptException e) {
-			System.out.println("Error haciendo la operacion");
-			System.exit(-1);
-		}*/
-
-		Expression e = new ExpressionBuilder(evaluar).build();
-		double result = e.evaluate();
-		System.out.println("resultado = "+(int) result);
-
-		//////////////////////////////////////////*/
-
 		System.out.println("\nFunciones ingresadas!");
+
+		// Iterar peticiones
 		while (true) {
 			// Recibir input
 			System.out.println("\nIngrese operación: (o escriba 'q' para salir)");
@@ -105,13 +83,13 @@ class Funciones {
 
 			// Función válida
 			String value = funciones.get(letra+"(x)");
-			System.out.println("value: "+value);
-			System.out.println("num: "+num);
 			double res = 0;
 			RunFuncion calcular = new RunFuncion("Thread principal", letra+"(x)", value, num);
 			calcular.start();
+			// Buscar resultado
 			calcular.lock.lock();
 			try {
+				// Esperar si no se ha obtenido
 				if (!calcular.calculado) {
 					calcular.condicion.await();
 				}
@@ -184,15 +162,64 @@ class RunFuncion implements Runnable {
 		while (!exit) {
 			// Si no ha realizado los cálculos
 			if (!calculado) {
+				ArrayList<RunFuncion> t_funciones = new ArrayList<RunFuncion>();
+				// Verificar funciones dentro
+				int i = 1;
+				for (Map.Entry<String,String>entrada:Funciones.funciones.entrySet()) {
+					String key = entrada.getKey();
+					String value = entrada.getValue();
+					// Si encuentra la función actual
+					if (operacion.indexOf(key) != -1) {
+						RunFuncion subfuncion = new RunFuncion("Thread de "+key+" "+i, key, value, numero);
+						t_funciones.add(subfuncion);
+						i++;
+						subfuncion.start();
+
+					}
+
+					// Ir a buscar resultados si es que hay subfunciones
+					if (t_funciones.size() != 0) {
+						double sub_res = 0;
+						Iterator<RunFuncion> iterador = t_funciones.iterator();
+						// Iterar por subfunciones
+						while (iterador.hasNext()) {
+							RunFuncion f_actual = iterador.next();
+							f_actual.lock.lock();
+							try {
+								// Esperar si no se ha obtenido
+								if (!f_actual.calculado) {
+									f_actual.condicion.await();
+								}
+								sub_res = f_actual.resultado;
+							}
+							catch (InterruptedException exc) {
+								System.out.println("Operación interrumpida");
+							}
+							f_actual.lock.unlock();
+							// Reemplazar resultado en la operación
+							operacion = operacion.replaceAll(f_actual.funcion.substring(0,1)+"\\(x\\)", String.valueOf(sub_res));
+						}
+					}
+				}
+
+				// Calcular expresión
 				Expression exp = new ExpressionBuilder(operacion.replace("x", numero)).build();
 				lock.lock();
-				resultado = exp.evaluate();
-				calculado = true;
+				// Guardar resultado
 				try {
-					condicion.signal();
+					resultado = exp.evaluate();
+					calculado = true;
+					// Avisar obtención
+					try {
+						condicion.signal();
+					}
+					catch (Exception e) {
+						System.out.println("Error avisando"+e);
+					}
 				}
+				// Error en Expression, probablemente division por 0
 				catch (Exception e) {
-					System.out.println(e);
+					System.out.println("Error aritmético.");
 				}
 				lock.unlock();
 				this.stop();
