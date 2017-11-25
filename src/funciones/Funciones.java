@@ -104,7 +104,7 @@ class Funciones {
 			}
 			calcular.lock.unlock();
 
-			// Limpiar entero
+			// Limpiar entero (como 5.2 -> 5)
 			if ((res % ((int) res)) == 0 || (((int) res) == 0)) {
 				System.out.println("El resultado de "+funcion+" es "+(int) calcular.resultado);
 			}
