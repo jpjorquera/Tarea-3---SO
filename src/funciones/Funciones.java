@@ -80,6 +80,10 @@ class Funciones {
 				System.out.println("Función inválida, por favor ingrésela nuevamente.");
 				continue;
 			}
+			if (funcion.indexOf("(") == -1 || funcion.indexOf(")") == -1){
+				System.out.println("Función inválida, por favor ingrésela nuevamente.");
+				continue;
+			}
 
 			// Función válida
 			String value = funciones.get(letra+"(x)");
