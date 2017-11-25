@@ -224,6 +224,7 @@ class RunFuncion implements Runnable {
 				// Error en Expression, probablemente division por 0
 				catch (Exception e) {
 					System.out.println("Error aritmético.");
+					System.exit(-1);
 				}
 				lock.unlock();
 				this.stop();
