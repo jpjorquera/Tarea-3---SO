@@ -274,7 +274,7 @@ class Cultivo implements Runnable {
       	costoKilo = costo;
       	id = codigo;
       	t_restante = tiempo;
-      	peso = 0;
+      	peso = 1;
    	}
 
    	// Acciones mientras corre el thread
