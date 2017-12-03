@@ -116,6 +116,11 @@ class Granja {
 
 			// Opcion comprar
 			else if (opcion == 3) {
+				// Verificar que hayan cultivos
+				if (id_actual == 1) {
+					System.out.println("No hay cultivos para comprar!\n");
+					continue;
+				}
 				Boolean valido = false;
 				int eleccion = 0;
 				int a_pagar = 0;
